@@ -1,7 +1,3 @@
-
-@external("env", "log")
-declare function log(ptr: i32, len: i32): void;
-
 export function onUpdate(dt: f32): void {
   logMessage("Hello World");
 }

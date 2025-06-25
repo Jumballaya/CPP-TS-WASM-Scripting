@@ -32,17 +32,25 @@ target_link_libraries(wasm_system m3)
 set(WASM_OUTPUTS "")
 foreach(SCRIPT ${SCRIPT_SOURCES})
   get_filename_component(SCRIPT_NAME ${SCRIPT} NAME_WE)
-  set(WASM_OUTPUT assets/wasm/${SCRIPT_NAME}.wasm)
-  list(APPEND WASM_OUTPUTS ${WASM_OUTPUT})
+
+  set(TEMP_SCRIPT ${CMAKE_BINARY_DIR}/temp/${SCRIPT_NAME}_build.ts)
+  set(WASM_OUTPUT ${CMAKE_BINARY_DIR}/assets/wasm/${SCRIPT_NAME}.wasm)
+
+  file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/temp)
+  file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/assets/wasm)
 
   add_custom_command(
     OUTPUT ${WASM_OUTPUT}
-    COMMAND asc ${SCRIPT} --target release --outFile ${WASM_OUTPUT} --runtime minimal --noAssert
-    DEPENDS ${SCRIPT}
-    COMMENT "Compiling ${SCRIPT} to ${WASM_OUTPUT}"
+    COMMAND ${CMAKE_COMMAND} -E echo "catting prelude and ${SCRIPT} into ${TEMP_SCRIPT}"
+    COMMAND cat ${CMAKE_SOURCE_DIR}/assets/prelude.ts ${SCRIPT} > ${TEMP_SCRIPT}
+    COMMAND ${CMAKE_COMMAND} -E echo "compiling ${TEMP_SCRIPT} to ${WASM_OUTPUT}"
+    COMMAND ${CMAKE_COMMAND} -E chdir ${CMAKE_SOURCE_DIR} asc ${TEMP_SCRIPT} --target release --outFile ${WASM_OUTPUT} --runtime minimal --noAssert
+    DEPENDS ${SCRIPT} assets/prelude.ts
+    COMMENT "Building ${WASM_OUTPUT}"
   )
+
+  list(APPEND WASM_OUTPUTS ${WASM_OUTPUT})
 endforeach()
 
 add_custom_target(build_wasm ALL DEPENDS ${WASM_OUTPUTS})
-
 add_dependencies(wasm_system build_wasm)
