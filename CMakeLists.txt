@@ -20,7 +20,11 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(wasm3)
 
 add_executable(wasm_system
-  src/main.cpp)
+  src/main.cpp
+  src/script/HostFunctions.cpp
+  src/script/ScriptInstance.cpp
+  src/script/ScriptManager.cpp
+)
 
 target_include_directories(wasm_system PRIVATE
   ${wasm3_SOURCE_DIR}/source
@@ -33,7 +37,7 @@ set(WASM_OUTPUTS "")
 foreach(SCRIPT ${SCRIPT_SOURCES})
   get_filename_component(SCRIPT_NAME ${SCRIPT} NAME_WE)
 
-  set(TEMP_SCRIPT ${CMAKE_BINARY_DIR}/temp/${SCRIPT_NAME}_build.ts)
+  set(TEMP_PREPEND ${CMAKE_BINARY_DIR}/temp/${SCRIPT_NAME}_prepended.ts)
   set(WASM_OUTPUT ${CMAKE_BINARY_DIR}/assets/wasm/${SCRIPT_NAME}.wasm)
 
   file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/temp)
@@ -41,10 +45,10 @@ foreach(SCRIPT ${SCRIPT_SOURCES})
 
   add_custom_command(
     OUTPUT ${WASM_OUTPUT}
-    COMMAND ${CMAKE_COMMAND} -E echo "catting prelude and ${SCRIPT} into ${TEMP_SCRIPT}"
-    COMMAND cat ${CMAKE_SOURCE_DIR}/assets/prelude.ts ${SCRIPT} > ${TEMP_SCRIPT}
-    COMMAND ${CMAKE_COMMAND} -E echo "compiling ${TEMP_SCRIPT} to ${WASM_OUTPUT}"
-    COMMAND ${CMAKE_COMMAND} -E chdir ${CMAKE_SOURCE_DIR} asc ${TEMP_SCRIPT} --target release --outFile ${WASM_OUTPUT} --runtime minimal --noAssert
+    COMMAND ${CMAKE_COMMAND} -E echo "Prepending prelude to ${SCRIPT} into ${TEMP_PREPEND}"
+    COMMAND cat ${CMAKE_SOURCE_DIR}/assets/prelude.ts ${SCRIPT} > ${TEMP_PREPEND}
+    COMMAND ${CMAKE_COMMAND} -E echo "Compiling ${TEMP_PREPEND} to ${WASM_OUTPUT}"
+    COMMAND ${CMAKE_COMMAND} -E chdir ${CMAKE_SOURCE_DIR} asc ${TEMP_PREPEND} --target release --outFile ${WASM_OUTPUT} --runtime minimal --noAssert
     DEPENDS ${SCRIPT} assets/prelude.ts
     COMMENT "Building ${WASM_OUTPUT}"
   )
@@ -53,4 +57,5 @@ foreach(SCRIPT ${SCRIPT_SOURCES})
 endforeach()
 
 add_custom_target(build_wasm ALL DEPENDS ${WASM_OUTPUTS})
+
 add_dependencies(wasm_system build_wasm)
