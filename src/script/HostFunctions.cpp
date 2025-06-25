@@ -6,9 +6,25 @@ m3ApiRawFunction(log) {
   m3ApiGetArg(int32_t, ptr);
   m3ApiGetArg(int32_t, len);
 
-  uint8_t* memory = m3_GetMemory(currentRuntime, nullptr, 0);
+  uint8_t* memory = m3_GetMemory(runtime, nullptr, 0);
   std::string message(reinterpret_cast<char*>(memory + ptr), len);
   std::cout << "[script] " << message << "\n";
+
+  m3ApiSuccess();
+}
+
+m3ApiRawFunction(abort) {
+  m3ApiGetArg(int32_t, msg_ptr);
+  m3ApiGetArg(int32_t, file_ptr);
+  m3ApiGetArg(int32_t, line);
+  m3ApiGetArg(int32_t, column);
+
+  uint8_t* memory = m3_GetMemory(runtime, nullptr, 0);
+
+  std::string message(reinterpret_cast<char*>(memory + msg_ptr));
+  std::string file(reinterpret_cast<char*>(memory + file_ptr));
+
+  std::cerr << "[wasm abort] " << message << " at " << file << ":" << line << ":" << column << std::endl;
 
   m3ApiSuccess();
 }
@@ -18,6 +34,11 @@ void linkCommonHostFunctions(IM3Module module, IM3Runtime runtime) {
 
   M3Result result = m3_LinkRawFunction(module, "env", "log", "v(ii)", &log);
   if (result != m3Err_none) {
-    throw std::runtime_error(std::string("Failed to link host function: ") + result);
+    throw std::runtime_error(std::string("Failed to link host function [log]: ") + result);
+  }
+
+  result = m3_LinkRawFunction(module, "env", "abort", "v(iiii)", &abort);
+  if (result != m3Err_none) {
+    throw std::runtime_error(std::string("Failed to link host function [abort]: ") + result);
   }
 }

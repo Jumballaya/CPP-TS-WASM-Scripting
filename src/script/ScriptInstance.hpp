@@ -14,8 +14,8 @@ class ScriptInstance {
 
  private:
   ScriptInstanceHandle _handle;
-  IM3Runtime runtime = nullptr;
-  IM3Function onUpdate = nullptr;
+  IM3Runtime _runtime = nullptr;
+  IM3Function _onUpdate = nullptr;
 
   void linkHostFunction(IM3Module module);
 };
