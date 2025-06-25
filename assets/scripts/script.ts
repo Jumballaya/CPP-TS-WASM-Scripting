@@ -1,4 +1,6 @@
+let t: f32 = 0;
+
 export function onUpdate(dt: f32): void {
-  const x = "!!!";
-  console.log("Hello ", "World", x);
+  t += dt;
+  console.log("dt: " + t.toString());
 }

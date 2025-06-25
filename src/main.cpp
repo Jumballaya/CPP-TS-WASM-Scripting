@@ -1,7 +1,9 @@
 #include <wasm3.h>
 
+#include <chrono>
 #include <fstream>
 #include <iostream>
+#include <thread>
 #include <vector>
 
 #include "script/ScriptHandle.hpp"
@@ -20,22 +22,25 @@ std::vector<uint8_t> loadWasmFile(const std::string& path) {
 }
 
 int main() {
-  try {
-    ScriptManager scriptManager;
+  ScriptManager scriptManager;
 
-    auto wasmBinary = loadWasmFile("./assets/wasm/script.wasm");
+  auto wasmBinary = loadWasmFile("./assets/wasm/script.wasm");
 
-    // Load the script and create an instance
-    ScriptHandle scriptHandle = scriptManager.loadScript(wasmBinary);
-    ScriptInstanceHandle instanceHandle = scriptManager.createInstance(scriptHandle);
+  // Load the script and create an instance
+  ScriptHandle scriptHandle = scriptManager.loadScript(wasmBinary);
+  ScriptInstanceHandle instanceHandle = scriptManager.createInstance(scriptHandle);
 
-    // Run update
-    float dt = 0.016f;
-    scriptManager.updateInstance(instanceHandle, dt);
+  while (true) {
+    try {
+      // Run update
+      float dt = 0.016f;
+      scriptManager.updateInstance(instanceHandle, dt);
 
-  } catch (const std::exception& ex) {
-    std::cerr << "Fatal: " << ex.what() << "\n";
-    return 1;
+    } catch (const std::exception& ex) {
+      std::cerr << "Fatal: " << ex.what() << "\n";
+      return 1;
+    }
+    std::this_thread::sleep_for(std::chrono::microseconds(16666));
   }
 
   return 0;
