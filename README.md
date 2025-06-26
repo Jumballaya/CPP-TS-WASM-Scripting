@@ -7,6 +7,8 @@ Why use Lua or C# when you could use WASM and write in TypeScript! All the benef
 - nodeJS and npm
   - Tested at nodeJS version `v22.15.0`
   - Tested at npm `10.9.2`
+- AssemblyScript at `0.28.2`
+  - `npm install -g assemblyscript`
 - CMake `3.20`+
 
 ## Build and Run
